@@ -1,33 +1,31 @@
 import streamlit as st
 import google.generativeai as genai
 
-# Configuración de página
-st.set_page_config(page_title="Tutor de Inglés IA", page_icon="🇬🇧")
-st.title("🇬🇧 Traductor y Tutor de Pronunciación")
+# Configuración básica
+st.set_page_config(page_title="Tutor Inglés", page_icon="🇬🇧")
+st.title("🇬🇧 Traductor y Tutor")
 
-# Configuración de la API
+# Configuración API con manejo de errores más estricto
 try:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-    # USAR 'gemini-1.5-flash' SIN prefijos complejos
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    key = st.secrets["GEMINI_API_KEY"]
+    genai.configure(api_key=key)
+    # USAMOS 'gemini-pro' (sin versiones flash o beta)
+    model = genai.GenerativeModel("gemini-pro")
 except Exception as e:
     st.error(f"Error de configuración: {e}")
     st.stop()
 
-# Instrucciones
-system_prompt = (
-    "Eres un tutor de inglés. Responde exclusivamente con: "
-    "\n1. Frase en Inglés: [Traducción]"
-    "\n2. Pronunciación: [Fonética intuitiva en español. Si es necesario, añade IPA entre paréntesis]."
-)
+# Instrucción clara y concisa
+prompt_base = "Traduce al inglés y dame fonética intuitiva en español. Formato: 1. Inglés: [Texto] 2. Fonética: [Texto]."
 
-user_input = st.text_area("Escribe aquí tu frase en español:")
+user_input = st.text_area("Frase en español:")
 
 if st.button("Traducir"):
     if user_input:
         try:
-            response = model.generate_content(f"{system_prompt}\n{user_input}")
-            st.markdown("### Resultado:")
+            response = model.generate_content(f"{prompt_base} Frase: {user_input}")
             st.success(response.text)
         except Exception as e:
-            st.error(f"Error técnico: {e}")
+            st.error(f"Error técnico (posible falta de acceso al modelo): {e}")
+    else:
+        st.warning("Escribe una frase.")
