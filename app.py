@@ -1,46 +1,37 @@
 import streamlit as st
 import os
-import re
-# Importante: Usamos la nueva librería de cliente
 from google import genai
-from google.genai.errors import APIError
 
-# Configuración de página
+# Configuración básica
 st.set_page_config(page_title="Tutor de Inglés IA", page_icon="🇬🇧")
+st.title("🇬🇧 Tutor de Pronunciación IA")
 
-# Inicialización del cliente (igual que tu app que funciona)
+# Inicialización segura del cliente
 api_key = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY"))
 
 if not api_key:
     st.error("❌ Faltando 'GEMINI_API_KEY' en los Secrets.")
     st.stop()
 
+# Inicializamos el cliente sin especificar rutas beta
 try:
     client = genai.Client(api_key=api_key)
 except Exception as e:
     st.error(f"❌ Error al inicializar el cliente: {e}")
     st.stop()
 
-st.title("🇬🇧 Tutor de Pronunciación IA")
 user_input = st.text_area("Escribe tu frase en español:")
 
 if st.button("Traducir y Analizar"):
     if user_input:
         with st.spinner("Consultando..."):
-            prompt = (
-                "Eres un tutor de inglés. Responde en este formato:\n"
-                "1. Inglés: [Traducción]\n"
-                "2. Fonética: [Escritura intuitiva + IPA]"
-            )
             try:
-                # CAMBIO CLAVE: Usamos 'gemini-2.0-flash' o 'gemini-1.5-flash' 
-                # con el cliente moderno
+                # Usamos el cliente moderno para llamar a un modelo estable
                 response = client.models.generate_content(
-                    model='gemini-1.5-flash',
-                    contents=f"{prompt}\n{user_input}"
+                    model='gemini-2.0-flash', 
+                    contents=f"Traduce al inglés y dame fonética: {user_input}"
                 )
                 st.success(response.text)
-            except APIError as e:
-                st.error(f"Error de API: {e}")
             except Exception as e:
-                st.error(f"Error inesperado: {e}")
+                st.error(f"Error técnico: {e}")
+                st.info("Asegúrate de que 'google-genai' esté en tu requirements.txt.")
